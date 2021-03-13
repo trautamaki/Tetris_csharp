@@ -33,12 +33,23 @@ namespace Tetris_csharp
         
         int current_shape_;
 
+        System.Windows.Threading.DispatcherTimer timer; // = new System.Threading.Timer();
+
+        bool create_ = true;
+
         public MainWindow()
         {
             InitializeComponent();
             Init();
             DrawGrid();
-            GameLoop();
+
+            // Add a game timer
+            timer = new System.Windows.Threading.DispatcherTimer();
+            timer.Tick += new System.EventHandler(GameLoop);
+            timer.Interval = new System.TimeSpan(0, 0, 1);
+            timer.Start();
+
+            //GameLoop();
         }
 
         void Init()
@@ -64,15 +75,20 @@ namespace Tetris_csharp
             }
         }
 
-        void GameLoop()
-        {
-            CreateBlock(0);
+        void GameLoop(object sender, System.EventArgs e)
+        {  
+            if (create_)
+            {
+                create_ = !create_;
+                CreateBlock(0);
+            }
+            
             Draw();
+            MoveBlock((int)Constants.DIRECTIONS.DOWN);
         }
 
         void CreateBlock(int tetromino)
         {
-            Debug.WriteLine("Create a shape");
             int start_x = 4;
             int start_y = 0;
 
@@ -81,7 +97,7 @@ namespace Tetris_csharp
 
             switch (tetromino)
             {
-                case (int) Constants.TETROMINO_KIND.HORIZONTAL:
+                case (int)Constants.TETROMINO_KIND.HORIZONTAL:
                     start_x = 4;
                     start_y = 0;
                     break;
@@ -116,19 +132,97 @@ namespace Tetris_csharp
             }
         }
 
-        void Draw()
+        void MoveBlock(int d)
         {
+            // Default delta x and delta y
+            int dx = 0;
+            int dy = 0;
+
+            int r = 1;
+
+            switch (d)
+            {
+                case (int)Constants.DIRECTIONS.LEFT:
+                    dx = -Constants.LATERAL_SPEED;
+                    break;
+                case (int)Constants.DIRECTIONS.RIGHT:
+                    dx = Constants.LATERAL_SPEED;
+                    break;
+                case (int)Constants.DIRECTIONS.DOWN:
+                    // TODO: implement fast-down
+                    dy = Constants.SPEED;
+                    r = dy;
+                    break;
+            }
+
+            // TODO: checking available space
+
+            // Move each piece's coordinates
+            for (int px = 0; px < 4; ++px)
+            {
+                for (int py = 0; py < 4; ++py)
+                {
+                    setAbsolutePosition(px, py, position_[px][py].x + dy,
+                                                position_[px][py].y + dx);
+                }
+            }
+        }
+
+        void setAbsolutePosition(int p_x, int p_y, int to_x, int to_y)
+        {
+            // Move piece's coordinates
+            position_[p_x][p_y] = new tetromino_pos { x = to_x, y = to_y };
+
+            // Clear the field
             for (int x = 0; x < Constants.ROWS; ++x)
             {
                 for (int y = 0; y < Constants.COLUMNS; ++y)
                 {
-                    if (field_[x][y] == 0)
+                    if (field_[x][y] != 1)
                     {
-                        Debug.WriteLine("empty");
-                        // Skip empty spots
                         continue;
                     }
                     else if (field_[x][y] == 1)
+                    {
+                        field_[x][y] = 0;
+                    }
+                }
+            }
+
+            // Re-assign '1' to the new position
+            for (int x = 0; x < Constants.ROWS; ++x)
+            {
+                for (int y = 0; y < Constants.COLUMNS; ++y)
+                {
+                    for (int px = 0; px < 4; ++px)
+                    {
+                        for (int py = 0; py < 4; ++py)
+                        {
+                            if ((x == position_[px][py].x &&
+                                  y == position_[px][py].y) &&
+                                 current_.GetShape()[px][py] == 1)
+                            {
+                                field_[x][y] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Redraw the field after movement
+            Draw();
+        }
+
+        void Draw()
+        {
+            mainCanvas.Children.Clear();
+            DrawGrid();
+
+            for (int x = 0; x < Constants.ROWS; ++x)
+            {
+                for (int y = 0; y < Constants.COLUMNS; ++y)
+                {
+                    if (field_[x][y] == 1)
                     {
                         SolidColorBrush c = new SolidColorBrush(current_.GetColor());
 

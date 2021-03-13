@@ -23,5 +23,12 @@
 
         public enum DIRECTIONS { LEFT, RIGHT, DOWN };
         public enum OBSTACLE { NONE, WALL, FLOOR, TETROMINO };
+
+        // How much to move a block per frame
+        public const int SPEED = 1;
+        // How much to move a block on keypress
+        public const int KEYPRESS_SPEED = 2 * SPEED;
+        // How much to move a block sideways on keypress
+        public const int LATERAL_SPEED = 1;
     }
 }
