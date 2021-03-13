@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Collections.Generic;
 
 namespace Tetris_csharp
 {
@@ -10,13 +11,29 @@ namespace Tetris_csharp
     /// </summary>
     public partial class MainWindow : Window
     {
+        List<List<int>> field_;
+
         public MainWindow()
         {
             InitializeComponent();
-            drawGrid();
+            DrawGrid();
+            StartGame();
         }
 
-        void drawGrid()
+        void StartGame()
+        {
+            field_ = new List<List<int>>();
+            for (int x = 0; x < Constants.ROWS; ++x)
+            {
+                field_.Add(new List<int>());
+                for (int y = 0; y < Constants.COLUMNS; ++y)
+                {
+                    field_[x].Add(0);
+                }
+            }
+        }
+
+        void DrawGrid()
         {
             SolidColorBrush black = new SolidColorBrush(Colors.DarkGray);
 
