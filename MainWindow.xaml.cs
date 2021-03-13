@@ -1,16 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace Tetris_csharp
@@ -20,23 +10,31 @@ namespace Tetris_csharp
     /// </summary>
     public partial class MainWindow : Window
     {
-
         public MainWindow()
         {
             InitializeComponent();
-            
+            drawGrid();
+        }
 
-            Rectangle Myline = new Rectangle();
+        void drawGrid()
+        {
+            SolidColorBrush black = new SolidColorBrush(Colors.DarkGray);
 
-            Myline.Stroke = new SolidColorBrush(Colors.Black);            Myline.StrokeThickness = 1;
-            Canvas.SetLeft(Myline, 10);
-            Canvas.SetTop(Myline, 100);
-            Myline.Width = 50;
-            Myline.Height = 50;
+            for (int x = 0; x < Constants.ROWS; ++x)
+            {
+                for (int y = 0; y < Constants.COLUMNS; ++y)
+                {
+                    Rectangle r = new Rectangle();
+                    r.Stroke = black;
+                    r.StrokeThickness = 1;
+                    r.Width = Constants.SQUARE_SIDE;
+                    r.Height = Constants.SQUARE_SIDE;
+                    Canvas.SetLeft(r, y * Constants.SQUARE_SIDE);
+                    Canvas.SetTop(r, x * Constants.SQUARE_SIDE);
 
-
-            mainCanvas.Children.Add(Myline);
-
+                    mainCanvas.Children.Add(r);
+                }
+            }
         }
     }
 }

@@ -5,14 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Tetris_csharp"
         mc:Ignorable="d"
-        Title="Tetris" Height="562" Width="701">
+        Title="Tetris" Height="560" Width="500">
 
     <Canvas>
         <Canvas Name="mainCanvas"
                 Canvas.Left="20"
                 Canvas.Top="20"
-                Width="242"
-                Height="482"
+                Width="240"
+                Height="480"
                 Background="LightGray"></Canvas>
     </Canvas>
 </Window>
