@@ -11,16 +11,17 @@ namespace Tetris_csharp
     /// </summary>
     public partial class MainWindow : Window
     {
+        bool DEBUG = true;
         List<List<int>> field_;
 
         public MainWindow()
         {
             InitializeComponent();
+            Init();
             DrawGrid();
-            StartGame();
         }
 
-        void StartGame()
+        void Init()
         {
             field_ = new List<List<int>>();
             for (int x = 0; x < Constants.ROWS; ++x)
@@ -50,6 +51,16 @@ namespace Tetris_csharp
                     Canvas.SetTop(r, x * Constants.SQUARE_SIDE);
 
                     mainCanvas.Children.Add(r);
+
+                    if (DEBUG)
+                    {
+                        TextBlock textBlock = new TextBlock();
+                        textBlock.Text = field_[x][y].ToString();
+                        textBlock.Foreground = new SolidColorBrush(Colors.Black);
+                        Canvas.SetLeft(textBlock, y * Constants.SQUARE_SIDE);
+                        Canvas.SetTop(textBlock, x * Constants.SQUARE_SIDE);
+                        mainCanvas.Children.Add(textBlock);
+                    }
                 }
             }
         }
