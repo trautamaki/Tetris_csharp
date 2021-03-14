@@ -188,7 +188,7 @@ namespace Tetris_csharp
                     break;
             }
 
-            int status = checkSpace(d, r);
+            int status = CheckSpace(d, r);
             switch (status)
             {
                 case (int)Constants.OBSTACLE.TETROMINO:
@@ -200,7 +200,7 @@ namespace Tetris_csharp
                     {
                         //TODO: moveToBottom();
                     }
-                    finishTetromino();
+                    FinishTetromino();
                     return;
                 case (int)Constants.OBSTACLE.WALL:
                     return;
@@ -209,7 +209,7 @@ namespace Tetris_csharp
                     {
                         //TODO: moveToBottom();
                     }
-                    finishTetromino();
+                    FinishTetromino();
                     return;
             }
 
@@ -218,13 +218,13 @@ namespace Tetris_csharp
             {
                 for (int py = 0; py < 4; ++py)
                 {
-                    setAbsolutePosition(px, py, position_[px, py].x + dx,
+                    SetAbsolutePosition(px, py, position_[px, py].x + dx,
                                                 position_[px, py].y + dy);
                 }
             }
         }
 
-        void finishTetromino()
+        void FinishTetromino()
         {
             for (int px = 0; px < 4; ++px)
             {
@@ -259,7 +259,7 @@ namespace Tetris_csharp
             }*/
         }
 
-        int checkSpace(int d, int r = 1)
+        int CheckSpace(int d, int r = 1)
         {
             // Default delta x and delta y
             int dx = 0;
@@ -316,7 +316,7 @@ namespace Tetris_csharp
             return (int)Constants.OBSTACLE.NONE;
         }
 
-        void setAbsolutePosition(int p_x, int p_y, int to_x, int to_y)
+        void SetAbsolutePosition(int p_x, int p_y, int to_x, int to_y)
         {
             // Move piece's coordinates
             position_[p_x, p_y] = new tetromino_pos { x = to_x, y = to_y };
