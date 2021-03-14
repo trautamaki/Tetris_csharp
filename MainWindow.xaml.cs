@@ -359,14 +359,53 @@ namespace Tetris_csharp
             /*drawNext();*/
             if (DEBUG) Debug.WriteLine("Tetromino finished");
 
-            /* TODO: check rows
-            for (int y = 0; y < ROWS; ++y)
+            for (int y = 0; y < Constants.ROWS; ++y)
             {
-                if (checkRow(y))
+                if (CheckRow(y))
                 {
-                    clearRow(y);
+                    ClearRow(y);
                 }
-            }*/
+            }
+        }
+        void ClearRow(int row)
+        {
+            if (DEBUG) Debug.WriteLine("Clearing row " + row);
+
+            // Clear the row
+            for (int x = 0; x < Constants.COLUMNS; ++x)
+            {
+                if (field_[x, row] < 2)
+                {
+                    field_[x, row] = 0;
+                }
+            }
+
+            // Move rows above 'row' 1 step down
+            for (int x = 0; x < Constants.COLUMNS; ++x)
+            {
+                for (int y = Constants.ROWS; y > 0; --y)
+                {
+                    if (y < row && y > 1)
+                    {
+                        field_[x, y + 1] = field_[x, y];
+                        field_[x, y] = 0;
+                    }
+                }
+            }
+            // TODO: points?
+        }
+
+        bool CheckRow(int row)
+        {
+            for (int x = 0; x < Constants.COLUMNS; ++x)
+            {
+                if (field_[x, row] < 2)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         int CheckSpace(int d, int r = 1)
