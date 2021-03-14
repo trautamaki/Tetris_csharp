@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Collections.Generic;
@@ -129,6 +130,22 @@ namespace Tetris_csharp
 
                     field_[start_x + x][start_y + y] = current_.GetShape()[x][y];
                 }
+            }
+        }
+
+        void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.A)
+            {
+                MoveBlock((int)Constants.DIRECTIONS.LEFT);
+            } 
+            else if (e.Key == Key.S)
+            {
+                MoveBlock((int)Constants.DIRECTIONS.DOWN);
+            }
+            else if (e.Key == Key.D)
+            {
+                MoveBlock((int)Constants.DIRECTIONS.RIGHT);
             }
         }
 

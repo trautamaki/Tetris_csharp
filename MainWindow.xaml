@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Tetris_csharp"
         mc:Ignorable="d"
+        KeyDown="Window_KeyDown"
         Title="Tetris" Height="560" Width="500">
 
     <Canvas>
