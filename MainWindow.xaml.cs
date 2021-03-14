@@ -14,7 +14,8 @@ namespace Tetris_csharp
     /// </summary>
     public partial class MainWindow : Window
     {
-        bool DEBUG = true;
+        bool DEBUG = false;
+
         struct tetromino_pos
         {
             public int x;
@@ -47,6 +48,9 @@ namespace Tetris_csharp
 
         // The next tetromino to spawn
         int next_ = 0;
+
+        // Graphics array, used for deleting old rectangles
+        List<UIElement> graphics_ = new List<UIElement>();
 
         public MainWindow()
         {
@@ -238,6 +242,7 @@ namespace Tetris_csharp
                 }
             }
         }
+
         bool AllClearBelow(int col)
         {
             for (int y = 0; y < Constants.ROWS; ++y)
@@ -468,8 +473,11 @@ namespace Tetris_csharp
 
         void Draw()
         {
-            mainCanvas.Children.Clear();
-            DrawGrid();
+            // Remove old graphics
+            foreach (UIElement r in graphics_)
+            {
+                mainCanvas.Children.Remove(r);
+            }
 
             for (int x = 0; x < Constants.COLUMNS; ++x)
             {
@@ -488,6 +496,7 @@ namespace Tetris_csharp
                         Canvas.SetLeft(r, x * Constants.SQUARE_SIDE);
                         Canvas.SetTop(r, y * Constants.SQUARE_SIDE);
 
+                        graphics_.Add(r);
                         mainCanvas.Children.Add(r);
                     }
                     else if (field_[x, y] >= 2)
@@ -504,6 +513,7 @@ namespace Tetris_csharp
                         Canvas.SetLeft(r, x * Constants.SQUARE_SIDE);
                         Canvas.SetTop(r, y * Constants.SQUARE_SIDE);
 
+                        graphics_.Add(r);
                         mainCanvas.Children.Add(r);
                     }
 
@@ -515,6 +525,7 @@ namespace Tetris_csharp
                         Canvas.SetLeft(textBlock, x * Constants.SQUARE_SIDE);
                         Canvas.SetTop(textBlock, y * Constants.SQUARE_SIDE);
 
+                        graphics_.Add(textBlock);
                         mainCanvas.Children.Add(textBlock);
                     }
                 }
