@@ -34,12 +34,18 @@ namespace Tetris_csharp
         
         int current_shape_;
 
-        System.Windows.Threading.DispatcherTimer timer; // = new System.Threading.Timer();
+        System.Windows.Threading.DispatcherTimer timer;
 
         bool create_ = true;
 
         // Make gravity greater on key ´S´
         bool fast_ = false;
+
+        // Randomizer for next tetromino
+        System.Random random_;
+
+        // The next tetromino to spawn
+        int next_ = 0;
 
         public MainWindow()
         {
@@ -77,6 +83,10 @@ namespace Tetris_csharp
                     position_[x, y] = new tetromino_pos { x = 0, y = 0 };
                 }
             }
+
+            random_ = new System.Random();
+            next_ = random_.Next((int)
+                Constants.TETROMINO_KIND.NUMBER_OF_TETROMINOS);
         }
 
         void GameLoop(object sender, System.EventArgs e)
@@ -84,7 +94,7 @@ namespace Tetris_csharp
             if (create_)
             {
                 create_ = !create_;
-                CreateBlock(0);
+                CreateBlock(next_);
             }
             
             Draw();
@@ -107,7 +117,7 @@ namespace Tetris_csharp
                     break;
                 case (int)Constants.TETROMINO_KIND.SQUARE:
                     start_x = 4;
-                    start_y = 0;
+                    start_y = 16;
                     break;
                 case (int)Constants.TETROMINO_KIND.STEP_UP_RIGHT:
                 case (int)Constants.TETROMINO_KIND.STEP_UP_LEFT:
@@ -115,7 +125,7 @@ namespace Tetris_csharp
                 case (int)Constants.TETROMINO_KIND.RIGHT_CORNER:
                 case (int)Constants.TETROMINO_KIND.PYRAMID:
                     start_x = 4;
-                    start_y = 0;
+                    start_y = 16;
                     break;
             }
 
@@ -233,9 +243,10 @@ namespace Tetris_csharp
             // Randomize next tetromino and show
             // in the box next to game field
             current_ = null;
-            /*createBlock(next_shape_);
-            next_shape_ = distr(randomEng);
-            drawNext();*/
+            CreateBlock(next_);
+            next_ = random_.Next((int)
+                Constants.TETROMINO_KIND.NUMBER_OF_TETROMINOS);
+            /*drawNext();*/
             if (DEBUG) Debug.WriteLine("Tetromino finished");
 
             /* TODO: check rows
