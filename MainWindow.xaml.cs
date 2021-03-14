@@ -25,7 +25,7 @@ namespace Tetris_csharp
         //  0: empty
         //  1: active tetromino
         //  2..9: finished tetromino
-        List<List<int>> field_;
+        int[,] field_;
 
         // 4*4 that holds the information of each piece in the tetromino
         List<List<tetromino_pos>> position_;
@@ -37,6 +37,9 @@ namespace Tetris_csharp
         System.Windows.Threading.DispatcherTimer timer; // = new System.Threading.Timer();
 
         bool create_ = true;
+
+        // Make gravity greater on key ´S´
+        bool fast_ = false;
 
         public MainWindow()
         {
@@ -55,13 +58,14 @@ namespace Tetris_csharp
 
         void Init()
         {
-            field_ = new List<List<int>>();
-            for (int x = 0; x < Constants.ROWS; ++x)
+            field_ = new int[Constants.COLUMNS,
+                             Constants.ROWS];
+
+            for (int x = 0; x < Constants.COLUMNS; ++x)
             {
-                field_.Add(new List<int>());
-                for (int y = 0; y < Constants.COLUMNS; ++y)
+                for (int y = 0; y < Constants.ROWS; ++y)
                 {
-                    field_[x].Add(0);
+                    field_[x,y] = 0;
                 }
             }
 
@@ -128,7 +132,7 @@ namespace Tetris_csharp
                     // To allow the 4*4 to go over the top
                     if (start_y + y < 0) continue;
 
-                    field_[start_x + x][start_y + y] = current_.GetShape()[x][y];
+                    field_[start_x + x, start_y + y] = current_.GetShape()[x][y];
                 }
             }
         }
@@ -172,17 +176,97 @@ namespace Tetris_csharp
                     break;
             }
 
-            // TODO: checking available space
+            int status = checkSpace(d, r);
+            switch (status)
+            {
+                case (int)Constants.OBSTACLE.TETROMINO:
+                    if (d != (int)Constants.DIRECTIONS.DOWN)
+                    {
+                        return;
+                    }
+                    if (fast_)
+                    {
+                        //TODO: moveToBottom();
+                    }
+                    //TODO: finishTetromino();
+                    break;
+                case (int)Constants.OBSTACLE.WALL:
+                    return;
+                case (int)Constants.OBSTACLE.FLOOR:
+                    if (fast_)
+                    {
+                        //TODO: moveToBottom();
+                    }
+                    //TODO: finishTetromino();
+                    break;
+            }
 
             // Move each piece's coordinates
             for (int px = 0; px < 4; ++px)
             {
                 for (int py = 0; py < 4; ++py)
                 {
-                    setAbsolutePosition(px, py, position_[px][py].x + dy,
-                                                position_[px][py].y + dx);
+                    setAbsolutePosition(px, py, position_[px][py].x + dx,
+                                                position_[px][py].y + dy);
                 }
             }
+        }
+
+        int checkSpace(int d, int r = 1)
+        {
+            // Default delta x and delta y
+            int dx = 0;
+            int dy = 0;
+
+            switch (d)
+            {
+                case (int)Constants.DIRECTIONS.LEFT:
+                    dx = -r;
+                    break;
+                case (int)Constants.DIRECTIONS.RIGHT:
+                    dx = r;
+                    break;
+                case (int)Constants.DIRECTIONS.DOWN:
+                    dy = r;
+                    break;
+            }
+
+            for (int px = 0; px < 4; ++px)
+            {
+                for (int py = 0; py < 4; ++py)
+                {
+                    if (current_.GetShape()[px][py] != 1) continue;
+
+                    // Check for walls
+                    if (position_[px][py].x + dx >= Constants.COLUMNS || // Right wall
+                        position_[px][py].x + dx < 0)                    // Left wall
+                    {
+                        if (DEBUG) Debug.WriteLine("Movement blocked: wall");
+                        return (int)Constants.OBSTACLE.WALL;
+                    }
+
+                    if (position_[px][py].y + dy >= Constants.ROWS)
+                    {
+                        if (DEBUG) Debug.WriteLine("Movement blocked: floor");
+                        return (int)Constants.OBSTACLE.FLOOR;
+                    }
+
+                    // Check for other blocks
+                    if ((position_[px][py].x + dx >= 0 &&
+                         position_[px][py].x + dx < Constants.COLUMNS) &&
+
+                         (position_[px][py].y + dy < Constants.ROWS) &&
+
+                         (field_[position_[px][py].x + dx,
+                                 position_[px][py].y + dy] > 1))
+                    {
+                        if (DEBUG) Debug.WriteLine("Movement blocked: tetromino");
+                        return (int)Constants.OBSTACLE.TETROMINO;
+                    }
+                }
+            }
+
+            return (int)Constants.OBSTACLE.NONE;
         }
 
         void setAbsolutePosition(int p_x, int p_y, int to_x, int to_y)
@@ -191,35 +275,35 @@ namespace Tetris_csharp
             position_[p_x][p_y] = new tetromino_pos { x = to_x, y = to_y };
 
             // Clear the field
-            for (int x = 0; x < Constants.ROWS; ++x)
+            for (int x = 0; x < Constants.COLUMNS; ++x)
             {
-                for (int y = 0; y < Constants.COLUMNS; ++y)
+                for (int y = 0; y < Constants.ROWS; ++y)
                 {
-                    if (field_[x][y] != 1)
+                    if (field_[x, y] != 1)
                     {
                         continue;
                     }
-                    else if (field_[x][y] == 1)
+                    else if (field_[x, y] == 1)
                     {
-                        field_[x][y] = 0;
+                        field_[x, y] = 0;
                     }
                 }
             }
 
             // Re-assign '1' to the new position
-            for (int x = 0; x < Constants.ROWS; ++x)
+            for (int x = 0; x < Constants.COLUMNS; ++x)
             {
-                for (int y = 0; y < Constants.COLUMNS; ++y)
+                for (int y = 0; y < Constants.ROWS; ++y)
                 {
                     for (int px = 0; px < 4; ++px)
                     {
                         for (int py = 0; py < 4; ++py)
                         {
-                            if ((x == position_[px][py].x &&
-                                  y == position_[px][py].y) &&
-                                 current_.GetShape()[px][py] == 1)
+                            if (x == position_[px][py].x &&
+                                y == position_[px][py].y &&
+                                current_.GetShape()[px][py] == 1)
                             {
-                                field_[x][y] = 1;
+                                field_[x, y] = 1;
                             }
                         }
                     }
@@ -235,11 +319,11 @@ namespace Tetris_csharp
             mainCanvas.Children.Clear();
             DrawGrid();
 
-            for (int x = 0; x < Constants.ROWS; ++x)
+            for (int x = 0; x < Constants.COLUMNS; ++x)
             {
-                for (int y = 0; y < Constants.COLUMNS; ++y)
+                for (int y = 0; y < Constants.ROWS; ++y)
                 {
-                    if (field_[x][y] == 1)
+                    if (field_[x, y] == 1)
                     {
                         SolidColorBrush c = new SolidColorBrush(current_.GetColor());
 
@@ -249,12 +333,12 @@ namespace Tetris_csharp
                         r.StrokeThickness = 1;
                         r.Width = Constants.SQUARE_SIDE;
                         r.Height = Constants.SQUARE_SIDE;
-                        Canvas.SetLeft(r, y * Constants.SQUARE_SIDE);
-                        Canvas.SetTop(r, x * Constants.SQUARE_SIDE);
+                        Canvas.SetLeft(r, x * Constants.SQUARE_SIDE);
+                        Canvas.SetTop(r, y * Constants.SQUARE_SIDE);
 
                         mainCanvas.Children.Add(r);
                     }
-                    else if (field_[x][y] >= 2)
+                    else if (field_[x, y] >= 2)
                     {
                         SolidColorBrush c = new SolidColorBrush(current_.GetColor());
 
@@ -264,8 +348,8 @@ namespace Tetris_csharp
                         r.StrokeThickness = 1;
                         r.Width = Constants.SQUARE_SIDE;
                         r.Height = Constants.SQUARE_SIDE;
-                        Canvas.SetLeft(r, y * Constants.SQUARE_SIDE);
-                        Canvas.SetTop(r, x * Constants.SQUARE_SIDE);
+                        Canvas.SetLeft(r, x * Constants.SQUARE_SIDE);
+                        Canvas.SetTop(r, y * Constants.SQUARE_SIDE);
 
                         mainCanvas.Children.Add(r);
                     }
@@ -273,10 +357,10 @@ namespace Tetris_csharp
                     if (DEBUG)
                     {
                         TextBlock textBlock = new TextBlock();
-                        textBlock.Text = field_[x][y].ToString();
+                        textBlock.Text = field_[x, y].ToString();
                         textBlock.Foreground = new SolidColorBrush(Colors.Black);
-                        Canvas.SetLeft(textBlock, y * Constants.SQUARE_SIDE);
-                        Canvas.SetTop(textBlock, x * Constants.SQUARE_SIDE);
+                        Canvas.SetLeft(textBlock, x * Constants.SQUARE_SIDE);
+                        Canvas.SetTop(textBlock, y * Constants.SQUARE_SIDE);
 
                         mainCanvas.Children.Add(textBlock);
                     }
@@ -288,17 +372,17 @@ namespace Tetris_csharp
         {
             SolidColorBrush black = new SolidColorBrush(Colors.DarkGray);
 
-            for (int x = 0; x < Constants.ROWS; ++x)
+            for (int x = 0; x < Constants.COLUMNS; ++x)
             {
-                for (int y = 0; y < Constants.COLUMNS; ++y)
+                for (int y = 0; y < Constants.ROWS; ++y)
                 {
                     Rectangle r = new Rectangle();
                     r.Stroke = black;
                     r.StrokeThickness = 1;
                     r.Width = Constants.SQUARE_SIDE;
                     r.Height = Constants.SQUARE_SIDE;
-                    Canvas.SetLeft(r, y * Constants.SQUARE_SIDE);
-                    Canvas.SetTop(r, x * Constants.SQUARE_SIDE);
+                    Canvas.SetLeft(r, x * Constants.SQUARE_SIDE);
+                    Canvas.SetTop(r, y * Constants.SQUARE_SIDE);
 
                     mainCanvas.Children.Add(r);
                 }
