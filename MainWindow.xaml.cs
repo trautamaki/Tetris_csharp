@@ -28,7 +28,7 @@ namespace Tetris_csharp
         int[,] field_;
 
         // 4*4 that holds the information of each piece in the tetromino
-        List<List<tetromino_pos>> position_;
+        tetromino_pos[,] position_;
 
         Tetromino current_;
         
@@ -69,13 +69,12 @@ namespace Tetris_csharp
                 }
             }
 
-            position_ = new List<List<tetromino_pos>>();
+            position_ = new tetromino_pos[4, 4];
             for (int x = 0; x < 4; ++x)
             {
-                position_.Add(new List<tetromino_pos>());
                 for (int y = 0; y < 4; ++y)
                 {
-                    position_[x].Add(new tetromino_pos { x = 0, y = 0 });
+                    position_[x, y] = new tetromino_pos { x = 0, y = 0 };
                 }
             }
         }
@@ -104,7 +103,7 @@ namespace Tetris_csharp
             {
                 case (int)Constants.TETROMINO_KIND.HORIZONTAL:
                     start_x = 4;
-                    start_y = 0;
+                    start_y = 16;
                     break;
                 case (int)Constants.TETROMINO_KIND.SQUARE:
                     start_x = 4;
@@ -126,7 +125,7 @@ namespace Tetris_csharp
             {
                 for (int y = 0; y < 4; y++)
                 {
-                    position_[x][y] = 
+                    position_[x, y] = 
                         new tetromino_pos { x = start_x + x, y = start_y + y };
 
                     // To allow the 4*4 to go over the top
@@ -139,6 +138,7 @@ namespace Tetris_csharp
 
         void Window_KeyDown(object sender, KeyEventArgs e)
         {
+            if (current_ == null) return;
             if (e.Key == Key.A)
             {
                 MoveBlock((int)Constants.DIRECTIONS.LEFT);
@@ -155,6 +155,8 @@ namespace Tetris_csharp
 
         void MoveBlock(int d)
         {
+            if (current_ == null) return;
+
             // Default delta x and delta y
             int dx = 0;
             int dy = 0;
@@ -188,8 +190,8 @@ namespace Tetris_csharp
                     {
                         //TODO: moveToBottom();
                     }
-                    //TODO: finishTetromino();
-                    break;
+                    finishTetromino();
+                    return;
                 case (int)Constants.OBSTACLE.WALL:
                     return;
                 case (int)Constants.OBSTACLE.FLOOR:
@@ -197,8 +199,8 @@ namespace Tetris_csharp
                     {
                         //TODO: moveToBottom();
                     }
-                    //TODO: finishTetromino();
-                    break;
+                    finishTetromino();
+                    return;
             }
 
             // Move each piece's coordinates
@@ -206,10 +208,44 @@ namespace Tetris_csharp
             {
                 for (int py = 0; py < 4; ++py)
                 {
-                    setAbsolutePosition(px, py, position_[px][py].x + dx,
-                                                position_[px][py].y + dy);
+                    setAbsolutePosition(px, py, position_[px, py].x + dx,
+                                                position_[px, py].y + dy);
                 }
             }
+        }
+
+        void finishTetromino()
+        {
+            for (int px = 0; px < 4; ++px)
+            {
+                for (int py = 0; py < 4; ++py)
+                {
+                    if (current_.GetShape()[px][py] == 0)
+                    {
+                        continue;
+                    }
+                    Debug.WriteLine("test: " + position_[px, py].y);
+                    field_[position_[px, py].x,
+                           position_[px, py].y] = current_shape_ + 2;
+                }
+            }
+
+            // Randomize next tetromino and show
+            // in the box next to game field
+            current_ = null;
+            /*createBlock(next_shape_);
+            next_shape_ = distr(randomEng);
+            drawNext();*/
+            if (DEBUG) Debug.WriteLine("Tetromino finished");
+
+            /* TODO: check rows
+            for (int y = 0; y < ROWS; ++y)
+            {
+                if (checkRow(y))
+                {
+                    clearRow(y);
+                }
+            }*/
         }
 
         int checkSpace(int d, int r = 1)
@@ -238,27 +274,27 @@ namespace Tetris_csharp
                     if (current_.GetShape()[px][py] != 1) continue;
 
                     // Check for walls
-                    if (position_[px][py].x + dx >= Constants.COLUMNS || // Right wall
-                        position_[px][py].x + dx < 0)                    // Left wall
+                    if (position_[px, py].x + dx >= Constants.COLUMNS || // Right wall
+                        position_[px, py].x + dx < 0)                    // Left wall
                     {
                         if (DEBUG) Debug.WriteLine("Movement blocked: wall");
                         return (int)Constants.OBSTACLE.WALL;
                     }
 
-                    if (position_[px][py].y + dy >= Constants.ROWS)
+                    if (position_[px, py].y + dy >= Constants.ROWS)
                     {
                         if (DEBUG) Debug.WriteLine("Movement blocked: floor");
                         return (int)Constants.OBSTACLE.FLOOR;
                     }
 
                     // Check for other blocks
-                    if ((position_[px][py].x + dx >= 0 &&
-                         position_[px][py].x + dx < Constants.COLUMNS) &&
+                    if ((position_[px, py].x + dx >= 0 &&
+                         position_[px, py].x + dx < Constants.COLUMNS) &&
 
-                         (position_[px][py].y + dy < Constants.ROWS) &&
+                         (position_[px, py].y + dy < Constants.ROWS) &&
 
-                         (field_[position_[px][py].x + dx,
-                                 position_[px][py].y + dy] > 1))
+                         (field_[position_[px, py].x + dx,
+                                 position_[px, py].y + dy] > 1))
                     {
                         if (DEBUG) Debug.WriteLine("Movement blocked: tetromino");
                         return (int)Constants.OBSTACLE.TETROMINO;
@@ -272,7 +308,7 @@ namespace Tetris_csharp
         void setAbsolutePosition(int p_x, int p_y, int to_x, int to_y)
         {
             // Move piece's coordinates
-            position_[p_x][p_y] = new tetromino_pos { x = to_x, y = to_y };
+            position_[p_x, p_y] = new tetromino_pos { x = to_x, y = to_y };
 
             // Clear the field
             for (int x = 0; x < Constants.COLUMNS; ++x)
@@ -299,8 +335,8 @@ namespace Tetris_csharp
                     {
                         for (int py = 0; py < 4; ++py)
                         {
-                            if (x == position_[px][py].x &&
-                                y == position_[px][py].y &&
+                            if (x == position_[px, py].x &&
+                                y == position_[px, py].y &&
                                 current_.GetShape()[px][py] == 1)
                             {
                                 field_[x, y] = 1;
@@ -340,7 +376,8 @@ namespace Tetris_csharp
                     }
                     else if (field_[x, y] >= 2)
                     {
-                        SolidColorBrush c = new SolidColorBrush(current_.GetColor());
+                        SolidColorBrush c = new SolidColorBrush(
+                            new Tetromino(field_[x, y] - 2).GetColor());
 
                         Rectangle r = new Rectangle();
                         r.Stroke = c;
