@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Tetris_csharp
 {
@@ -161,7 +162,111 @@ namespace Tetris_csharp
             {
                 MoveBlock((int)Constants.DIRECTIONS.RIGHT);
             }
+            else if (e.Key == Key.Space)
+            {
+                MoveToBottom();
+            }
         }
+
+        void MoveToBottom()
+        {
+            bool all_the_way = false;
+            int delta_y = 0;
+
+            List<int> piece_delta_y = new List<int>();
+            bool[] piece_to_bottom = new bool[4]
+                { false, false, false, false };
+            int[] piece_to_bottom_y = new int[4]
+                { Constants.ROWS + 1, Constants.ROWS + 1,
+                  Constants.ROWS + 1, Constants.ROWS + 1};
+
+            int i = 0;
+            for (int px = 0; px < 4; ++px)
+            {
+                for (int py = 0; py < 4; ++py)
+                {
+                    if (current_.GetShape()[px][py] != 1) continue;
+
+                    // Check if all pieces can go directly to floor
+                    if (AllClearBelow(position_[px, py].x))
+                    {
+                        piece_to_bottom_y[i] = Constants.ROWS 
+                            - position_[px, py].y - 1;
+                        piece_to_bottom[i] = true;
+                    }
+
+                    // No need to continue loop if all
+                    // can go to the floor
+                    all_the_way = AllTrue(piece_to_bottom);
+                    if (all_the_way)
+                    {
+                        break;
+                    }
+
+                    // Calculate the possible delta y for each piece
+                    int j = 0;
+                    for (int x = 0; x < Constants.COLUMNS; ++x)
+                    {
+                        for (int y = 0; y < Constants.ROWS; ++y)
+                        {
+                            if (x == position_[px, py].x &&
+                                 field_[x, y] > 1)
+                            {
+                                int candidate_y = y - position_[px, py].y - 1;
+                                piece_delta_y.Add(candidate_y);
+                            }
+                        }
+                        ++j;
+                    }
+                    ++i;
+                }
+            }
+
+            // Choose the smallest delta y from all pieces
+            // to only move as little as possible
+            delta_y = all_the_way ? piece_to_bottom_y.Min()
+                                  : piece_delta_y.Min();
+
+            Debug.WriteLine(delta_y);
+
+            for (int h = 0; h < 4; h++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    SetAbsolutePosition(h, j, position_[h, j].x,
+                                              position_[h, j].y + delta_y);
+                }
+            }
+        }
+        bool AllClearBelow(int col)
+        {
+            for (int y = 0; y < Constants.ROWS; ++y)
+            {
+                if (field_[col, y] > 1)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /* 
+         * Helper to check if all elements
+         * in vector are true
+         */
+        bool AllTrue(bool[] vec)
+        {
+            foreach (bool b in vec)
+            {
+                if (!b)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
 
         void MoveBlock(int d)
         {
@@ -198,7 +303,7 @@ namespace Tetris_csharp
                     }
                     if (fast_)
                     {
-                        //TODO: moveToBottom();
+                        MoveToBottom();
                     }
                     FinishTetromino();
                     return;
@@ -207,7 +312,7 @@ namespace Tetris_csharp
                 case (int)Constants.OBSTACLE.FLOOR:
                     if (fast_)
                     {
-                        //TODO: moveToBottom();
+                        MoveToBottom();
                     }
                     FinishTetromino();
                     return;
@@ -234,7 +339,7 @@ namespace Tetris_csharp
                     {
                         continue;
                     }
-                    Debug.WriteLine("test: " + position_[px, py].y);
+
                     field_[position_[px, py].x,
                            position_[px, py].y] = current_shape_ + 2;
                 }
